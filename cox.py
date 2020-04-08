@@ -17,9 +17,25 @@ import _pickle as pkl
 from torch.multiprocessing import Pool
 from lifelines import CoxPHFitter
 from source.helpers import *
+from sklearn.model_selection import train_test_split
+from sksurv.linear_model import CoxPHSurvivalAnalysis
+from sksurv.metrics import concordance_index_censored
+from source.data import RANDOM_STATE
 
 
-x_train, train, x_valid, valid, x_test, test, name = get_dataset(1)
+def cox(file_name):
 
-cph = CoxPHFitter()
-cph.fit()
+    df = pd.read_csv(os.path.join(DATA_DIR, file_name))
+    raw_x, raw_y = sksurv_data_formatting(df)
+    random_state = 7
+
+    x_train, x_test, y_train, y_test = train_test_split(raw_x, raw_y, test_size=0.25, random_state=RANDOM_STATE)
+
+    estimator = CoxPHSurvivalAnalysis()
+    estimator.fit(x_train, y_train)
+
+    prediction = estimator.predict(x_test)
+    result = concordance_index_censored(y_test["Status"], y_test["Survival_in_days"], prediction)
+
+    return result[0]
+
