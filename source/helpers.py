@@ -6,11 +6,11 @@ import pandas as pd
 from source import DATA_DIR
 
 
-def sksurv_data_formatting(raw_data, feature_num):
-    raw_x = raw_data.iloc[:, :feature_num].copy()
-    raw_y = raw_data.iloc[:, feature_num:]
+def sksurv_data_formatting(raw_data):
+    raw_x = raw_data.iloc[:, :-2].copy()
+    raw_y = raw_data.iloc[:, -2:]
 
-    raw_y = np.array([(bool(_y[1]), _y[0]) for _y in raw_y],
+    raw_y = np.array([(bool(_y[1]), _y[0]) for _y in raw_y.values],
                      dtype=[("Status", "?"), ("Survival_in_days", "<f8")])
 
     return raw_x, raw_y

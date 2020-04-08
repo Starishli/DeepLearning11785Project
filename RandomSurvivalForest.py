@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from source import DATA_DIR
+from source.helpers import sksurv_data_formatting
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OrdinalEncoder
 from sksurv.datasets import load_gbsg2
@@ -13,10 +14,9 @@ from sksurv.ensemble import RandomSurvivalForest
 
 df = pd.read_csv(os.path.join(DATA_DIR, "metabric1904.csv"))
 
-raw_x = df.iloc[:, :9]
-raw_y = df.iloc[:, 9:]
+raw_x, raw_y = sksurv_data_formatting(df)
 
-raw_y = np.array([(bool(_x[1]), _x[0]) for _x in raw_y])
+print()
 
 random_state = 7
 
