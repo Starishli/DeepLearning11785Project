@@ -31,7 +31,7 @@ def deepsurv_trainNtest(name):
 
 
 if __name__ == "__main__":
-    dataset_name = "support"
+    dataset_name = "metabric"
     score = deepsurv_trainNtest(dataset_name)
 
     print(score)
