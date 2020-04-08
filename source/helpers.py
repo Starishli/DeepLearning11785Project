@@ -1,27 +1,9 @@
 import os
-import pickle
 import numpy as np
 import pandas as pd
 
 
 from source import DATA_DIR
-
-
-def cache_write(file_path, data):
-    file_dir = os.path.dirname(file_path)
-    if not os.path.exists(file_dir):
-        os.makedirs(file_dir)
-    with open(file_path, 'wb') as fp:
-        pickle.dump(data, fp)
-
-
-def cache_load(file_path):
-    if not os.path.isfile(file_path):
-        print('Warning: No such as file to Load')
-        return None
-    with open(file_path, 'rb') as fp:
-        pp = pickle.load(fp)
-    return pp
 
 
 def sksurv_data_formatting(raw_data):
@@ -32,6 +14,19 @@ def sksurv_data_formatting(raw_data):
                      dtype=[("Status", "?"), ("Survival_in_days", "<f8")])
 
     return raw_x, raw_y
+
+
+def deepsurv_data_formatting(raw_data):
+    raw_x = raw_data.iloc[:, :-2].copy()
+    raw_y = raw_data.iloc[:, -2:]
+
+    res_dict = {
+        "x": raw_x.astype("float32").values,
+        "t": raw_y["lenfol"].astype("float32").values,
+        "e": raw_y["fstat"].astype("int32").values
+    }
+
+    return res_dict
 
 
 def get_dataset(dataset_choice):
