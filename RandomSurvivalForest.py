@@ -13,23 +13,23 @@ from sksurv.preprocessing import OneHotEncoder
 from sksurv.ensemble import RandomSurvivalForest
 
 
-df = pd.read_csv(os.path.join(DATA_DIR, "metabric1904.csv"))
+def random_survival_forest(file_name, test_size, n_estimators, min_samples_split,
+                           min_samples_leaf, max_features, random_state):
+    df = pd.read_csv(os.path.join(DATA_DIR, file_name))
 
-raw_x, raw_y = sksurv_data_formatting(df)
+    raw_x, raw_y = sksurv_data_formatting(df)
 
-x_train, x_test, y_train, y_test = train_test_split(raw_x, raw_y, test_size=0.25, random_state=RANDOM_STATE)
+    x_train, x_test, y_train, y_test = train_test_split(raw_x, raw_y, test_size=test_size, random_state=random_state)
 
-print(x_train.head())
+    cur_rsf = RandomSurvivalForest(n_estimators=n_estimators,
+                                   min_samples_split=min_samples_split,
+                                   min_samples_leaf=min_samples_leaf,
+                                   max_features=max_features,
+                                   n_jobs=-1,
+                                   random_state=random_state)
+    cur_rsf.fit(x_train, y_train)
 
-cur_rsf = RandomSurvivalForest(n_estimators=500,
-                               min_samples_split=10,
-                               min_samples_leaf=15,
-                               max_features="sqrt",
-                               n_jobs=-1,
-                               random_state=RANDOM_STATE)
-cur_rsf.fit(x_train, y_train)
-
-print(cur_rsf.score(x_test, y_test))
+    return cur_rsf.score(x_test, y_test)
 
 
 
