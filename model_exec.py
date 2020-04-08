@@ -4,12 +4,15 @@ import numpy as np
 
 from source import DATA_DIR
 from source.helpers import sksurv_data_formatting
-from source.data import RANDOM_STATE
+from source.data import RANDOM_STATE, filename_dict
 from source.model.RandomSurvivalForest import random_survival_forest
 
 
 if __name__ == "__main__":
-    df = pd.read_csv(os.path.join(DATA_DIR, "metabric1904.csv"))
+    dataset_name = "gbsg"
+
+    filename = filename_dict[dataset_name]
+    df = pd.read_csv(os.path.join(DATA_DIR, filename))
 
     formatted_x, formatted_y = sksurv_data_formatting(df)
 

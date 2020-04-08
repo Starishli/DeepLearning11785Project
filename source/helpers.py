@@ -21,9 +21,9 @@ def deepsurv_data_formatting(raw_data):
     raw_y = raw_data.iloc[:, -2:]
 
     res_dict = {
-        "x": raw_x.astype("float32").values,
-        "t": raw_y["lenfol"].astype("float32").values,
-        "e": raw_y["fstat"].astype("int32").values
+        "x": raw_x.values.astype("float32"),
+        "t": raw_y["lenfol"].values.astype("float32"),
+        "e": raw_y["fstat"].values.astype("int32")
     }
 
     return res_dict
