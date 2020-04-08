@@ -39,5 +39,3 @@ def cox(name):
     result = concordance_index_censored(y_test["Status"], y_test["Survival_in_days"], prediction)
 
     return result[0]
-
-print(cox("metabric"))
