@@ -23,13 +23,10 @@ from sksurv.metrics import concordance_index_censored
 from source.data import RANDOM_STATE
 
 
-def cox(file_name):
+def cox(formatted_x, formatted_y):
 
-    df = pd.read_csv(os.path.join(DATA_DIR, file_name))
-    raw_x, raw_y = sksurv_data_formatting(df)
-    random_state = 7
-
-    x_train, x_test, y_train, y_test = train_test_split(raw_x, raw_y, test_size=0.25, random_state=RANDOM_STATE)
+    x_train, x_test, y_train, y_test = train_test_split(formatted_x, formatted_y,
+                                                        test_size=0.25, random_state=RANDOM_STATE)
 
     estimator = CoxPHSurvivalAnalysis()
     estimator.fit(x_train, y_train)
