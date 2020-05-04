@@ -39,3 +39,6 @@ def cox(name):
     result = concordance_index_censored(y_test["Status"], y_test["Survival_in_days"], prediction)
 
     return result[0]
+
+filename = filename_dict["metabric"]
+data = pd.read_csv(os.path.join(DATA_DIR, filename))

@@ -2,6 +2,8 @@ import os
 import numpy as np
 import pandas as pd
 
+import torch
+from sklearn.preprocessing import StandardScaler
 
 from source import DATA_DIR
 
@@ -125,6 +127,59 @@ def get_dataset(dataset_choice):
         return
 
     return x_train, train, x_valid, valid, x_test, test, y_train, y_valid, y_test, dataset_name
+
+
+def scale_data_to_torch(x_train, train, x_valid, valid, x_test, test):
+    scl = StandardScaler()
+    x_train = scl.fit_transform(x_train)
+    e_train = train['fstat']
+    t_train = train['lenfol']
+
+    x_valid = scl.fit_transform(x_valid)
+    e_valid = valid['fstat']
+    t_valid = valid['lenfol']
+
+    x_test = scl.transform(x_test)
+    e_test = test['fstat']
+    t_test = test['lenfol']
+
+    x_train = torch.from_numpy(x_train).float()
+    e_train = torch.from_numpy(e_train.values).float()
+    t_train = torch.from_numpy(t_train.values)
+
+    x_valid = torch.from_numpy(x_valid).float()
+    e_valid = torch.from_numpy(e_valid.values).float()
+    t_valid = torch.from_numpy(t_valid.values)
+
+    x_test = torch.from_numpy(x_test).float()
+    e_test = torch.from_numpy(e_test.values).float()
+    t_test = torch.from_numpy(t_test.values)
+
+    return x_train, e_train, t_train, x_valid, e_valid, t_valid, x_test, e_test, t_test
+
+
+def compute_risk_set(t_train,t_valid,t_test):
+    t_ = t_train.cpu().data.numpy()
+    risk_set = []
+    for i in range(len(t_)):
+
+        risk_set.append([i]+np.where(t_>t_[i])[0].tolist())
+
+    t_ = t_valid.cpu().data.numpy()
+
+    risk_set_valid = []
+    for i in range(len(t_)):
+
+        risk_set_valid.append([i]+np.where(t_>t_[i])[0].tolist())
+
+
+    t_ = t_test.cpu().data.numpy()
+
+    risk_set_test = []
+    for i in range(len(t_)):
+
+        risk_set_test.append([i]+np.where(t_>t_[i])[0].tolist())
+    return risk_set,risk_set_valid,risk_set_test
 
 
 
