@@ -4,6 +4,8 @@ import pandas as pd
 
 import torch
 from sklearn.preprocessing import StandardScaler
+from lifelines.utils import concordance_index
+from sklearn.utils import resample
 
 from source import DATA_DIR
 
@@ -180,6 +182,31 @@ def compute_risk_set(t_train,t_valid,t_test):
 
         risk_set_test.append([i]+np.where(t_>t_[i])[0].tolist())
     return risk_set,risk_set_valid,risk_set_test
+
+
+def get_concordance_index(x, gated_x, t, e, bootstrap=False):
+    t = t.detach().cpu().numpy()
+    e = e.detach().cpu().numpy()
+    softmax = torch.nn.Softmax(dim=1)(gated_x)
+    r = x.shape[0]
+    soft_computed_hazard = torch.exp(x)
+    hard_computed_hazard = soft_computed_hazard[range(r),gated_x.argmax(1)[1]]
+    soft_computed_hazard = torch.mul(softmax, soft_computed_hazard)
+    soft_computed_hazard = torch.sum(soft_computed_hazard, dim = 1)
+    soft_computed_hazard = -1*soft_computed_hazard.detach().cpu().numpy()
+    hard_computed_hazard = -1*hard_computed_hazard.detach().cpu().numpy()
+    if not bootstrap:
+        return concordance_index(t,soft_computed_hazard,e),concordance_index(t,hard_computed_hazard,e)
+    else:
+        soft_concord, hard_concord = [], []
+        for i in range(bootstrap):
+            soft_dat_, e_, t_ = resample(soft_computed_hazard, e, t,random_state=i )
+            sci = concordance_index(t_,soft_dat_,e_)
+            hard_dat_,  e_, t_  = resample(hard_computed_hazard,  e, t ,random_state=i)
+            hci = concordance_index(t_,hard_dat_,e_)
+            soft_concord.append(sci)
+            hard_concord.append(hci)
+        return soft_concord, hard_concord
 
 
 
