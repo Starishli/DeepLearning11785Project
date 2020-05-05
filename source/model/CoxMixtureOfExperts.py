@@ -19,9 +19,10 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 class ExpertsMixture(object):
-    def __init__(self, dataset_name, learning_rate, linear_model, num_hidden_layer, n_epochs=4000):
+    def __init__(self, dataset_name, learning_rate, linear_model, num_hidden_layer, n_epochs=4000, model_specific=""):
         filename = filename_dict[dataset_name]
         self.dataset_name = dataset_name
+        self.model_specific = model_specific
 
         df = pd.read_csv(os.path.join(DATA_DIR, filename))
         df = df.drop_duplicates()
@@ -39,7 +40,9 @@ class ExpertsMixture(object):
         self.linear_model = linear_model
         self.num_hidden_layers = num_hidden_layer
 
-        self.beta_network = nn.Sequential(nn.Linear(self.n_features, linear_model, bias=False))
+        beta_network_layers = [nn.Linear(self.n_features, self.n_features, bias=False), nn.ReLU(),
+                               nn.Linear(self.n_features, linear_model, bias=False)]
+        self.beta_network = nn.Sequential(*beta_network_layers)
 
         gated_network_layers_sizes = [self.n_features for _ in range(num_hidden_layer + 1)] + [linear_model]
         gated_network_layers = []
@@ -254,8 +257,8 @@ class ExpertsMixture(object):
                        "c-index-soft": self.train_ci_soft, "c-index-hard": self.train_ci_hard,
                        "c-index-test-soft": self.test_ci_soft, "c-index-test-hard": self.test_ci_hard}
 
-        output_file_name = "{}_{}_{}_{}_{}.dat".format(self.dataset_name, self.learning_rate, self.linear_model,
-                                                       self.num_hidden_layers, self.n_epochs)
+        output_file_name = "{}_{}_{}_{}_{}{}.dat".format(self.dataset_name, self.learning_rate, self.linear_model,
+                                                         self.num_hidden_layers, self.n_epochs, self.model_specific)
 
         cache_write(os.path.join(RESULT_DIR, output_file_name), result_dict)
         print("Result to {}".format(output_file_name))
@@ -288,18 +291,19 @@ def run_all(dataset_name):
     for params in itertools.product(learning_rates, linear_models, num_hidden_layers):
         cur_learning_rate, cur_linear_model, cur_num_hidden_layer = params
 
-        cur_model = ExpertsMixture(dataset_name, cur_learning_rate, cur_linear_model, cur_num_hidden_layer)
+        cur_model = ExpertsMixture(dataset_name, cur_learning_rate, cur_linear_model, cur_num_hidden_layer,
+                                   model_specific="new")
         cur_model.exec()
 
 
 if __name__ == "__main__":
-    # test_class = ExpertsMixture("metabric", 0.001, 10, 1)
+    # test_class = ExpertsMixture("metabric", 0.001, 10, 1, model_specific="new")
     # test_class.exec()
 
-    # file_name = "metabric_0.001_10_1_4000"
-    # print_results(file_name)
+    file_name = "whas_0.0001_2_1_4000.dat"
+    print_results(file_name)
 
-    run_all("metabric")
+    # run_all("metabric")
 
 
 
