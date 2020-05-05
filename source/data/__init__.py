@@ -3,7 +3,8 @@ RANDOM_STATE = 7
 filename_dict = {
     "metabric": "metabric1904.csv",
     "support": "support8873.csv",
-    "gbsg": "gbsg2232.csv"
+    "gbsg": "gbsg2232.csv",
+    "whas": "whas1638.csv"
 }
 
 deepsurv_hyper_params_dict = {
@@ -29,13 +30,25 @@ deepsurv_hyper_params_dict = {
                 "n_in": 14,
                 "hidden_layers_sizes": [44]},
 
-    "gbsg": {"L2_reg": 6.5512451171875,
-             "dropout": 0.6606318359374999,
-             "learning_rate": 0.153895727328729,
-             "lr_decay": 0.005667089843750001,
-             "momentum": 0.88674658203125,
+    "gbsg": {"learning_rate": 0.0004991066534650134,
+             "dropout": 0.0783935546875,
+             "lr_decay": 0.000746533203125,
+             "momentum": 0.8255483398437501,
+             "L2_reg": 1.5917993164062498,
+             "batch_norm": False,
+             "standardize": True,
+             "n_in": 7,
+             "hidden_layers_sizes": [20, 20, 20],
+             "activation": "selu"},
+
+    "whas": {"L2_reg": 2.8032470703125,
+             "dropout": 0.0899951171875,
+             "learning_rate": 0.023825980458515722,
+             "lr_decay": 0.0005817382812499998,
+             "momentum": 0.8383100585937501,
              "batch_norm": False,
              "activation": "selu",
              "standardize": True,
-             "n_in": 7,
-             "hidden_layers_sizes": [8]}}
+             "n_in": 6,
+             "hidden_layers_sizes": [40, 40, 40]}
+}
