@@ -2,10 +2,11 @@ import os
 import torch
 import numpy as np
 import pandas as pd
+import scipy
 
 from torch import nn
 from source import DATA_DIR, RESULT_DIR
-from source.helpers import cache_write
+from source.helpers import cache_write, cache_load
 from source.data import filename_dict, RANDOM_STATE
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -239,7 +240,7 @@ class ExpertsMixture(object):
                                                                   self.t_test, self.e_test, 250)
 
         self.test_ci_soft.append(ci_soft_test)
-        self.test_ci_hard.append(ci_soft_test)
+        self.test_ci_hard.append(ci_hard_test)
 
         loss_test = self._elbo_calc(beta_outputs_test, gated_outputs_test, self.e_test, self.risk_set_test)
         cur_loss_test = loss_test.detach().cpu().numpy()
@@ -255,7 +256,7 @@ class ExpertsMixture(object):
         output_file_name = "{}_{}_{}_{}_{}".format(self.dataset_name, self.learning_rate, self.linear_model,
                                                    self.num_hidden_layers, self.n_epochs)
 
-        cache_write(result_dict, os.path.join(RESULT_DIR, output_file_name))
+        cache_write(os.path.join(RESULT_DIR, output_file_name), result_dict)
 
     def exec(self):
         self.model_training()
@@ -263,7 +264,29 @@ class ExpertsMixture(object):
         self.result_output()
 
 
+def print_results(filename):
+    output = cache_load(os.path.join(RESULT_DIR, filename))
+
+    nlinear_h = []
+    nlinear_s = []
+
+    for i in range(len(output)):
+        nlinear_s.append(np.mean(output['c-index-test-soft']))
+        nlinear_h.append(np.mean(output['c-index-test-hard']))
+
+    m_soft, se_soft = np.mean(output['c-index-test-soft']), scipy.stats.sem(output['c-index-test-soft'][0])
+    m_hard, se_hard = np.mean(output['c-index-test-hard']), scipy.stats.sem(output['c-index-test-hard'][0])
+    n = len(output['c-index-test-soft'][0])
+    confidence = 0.95
+
+    print("NLin-S:", np.max(nlinear_s),"+-", se_soft * scipy.stats.t.ppf((1 + confidence) / 2., n-1))
+    print("NLin-H:", np.max(nlinear_h), "+-", se_hard * scipy.stats.t.ppf((1 + confidence) / 2., n-1))
+
+
 if __name__ == "__main__":
     test_class = ExpertsMixture("metabric", 0.001, 10, 1)
     test_class.exec()
+
+    file_name = "metabric_0.001_10_1_4000"
+    print_results(file_name)
 
