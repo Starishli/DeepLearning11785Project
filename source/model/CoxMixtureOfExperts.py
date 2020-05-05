@@ -291,14 +291,14 @@ def run_all(dataset_name):
         cur_model.exec()
 
 
-
-
 if __name__ == "__main__":
-    test_class = ExpertsMixture("metabric", 0.001, 10, 1)
-    test_class.exec()
+    # test_class = ExpertsMixture("metabric", 0.001, 10, 1)
+    # test_class.exec()
 
     # file_name = "metabric_0.001_10_1_4000"
     # print_results(file_name)
+
+    run_all("metabric")
 
 
 
