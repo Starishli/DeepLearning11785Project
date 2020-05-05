@@ -3,6 +3,7 @@ import torch
 import numpy as np
 import pandas as pd
 import scipy
+import itertools
 
 from torch import nn
 from source import DATA_DIR, RESULT_DIR
@@ -18,7 +19,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 class ExpertsMixture(object):
-    def __init__(self, dataset_name, learning_rate, linear_model, num_hidden_layers, n_epochs=4000):
+    def __init__(self, dataset_name, learning_rate, linear_model, num_hidden_layer, n_epochs=4000):
         filename = filename_dict[dataset_name]
         self.dataset_name = dataset_name
 
@@ -36,11 +37,11 @@ class ExpertsMixture(object):
 
         self.learning_rate = learning_rate
         self.linear_model = linear_model
-        self.num_hidden_layers = num_hidden_layers
+        self.num_hidden_layers = num_hidden_layer
 
         self.beta_network = nn.Sequential(nn.Linear(self.n_features, linear_model, bias=False))
 
-        gated_network_layers_sizes = [self.n_features for _ in range(num_hidden_layers)] + [linear_model]
+        gated_network_layers_sizes = [self.n_features for _ in range(num_hidden_layer + 1)] + [linear_model]
         gated_network_layers = []
 
         for i in range(len(gated_network_layers_sizes) - 2):
@@ -267,26 +268,37 @@ class ExpertsMixture(object):
 def print_results(filename):
     output = cache_load(os.path.join(RESULT_DIR, filename))
 
-    nlinear_h = []
-    nlinear_s = []
-
-    for i in range(len(output)):
-        nlinear_s.append(np.mean(output['c-index-test-soft']))
-        nlinear_h.append(np.mean(output['c-index-test-hard']))
-
     m_soft, se_soft = np.mean(output['c-index-test-soft']), scipy.stats.sem(output['c-index-test-soft'][0])
     m_hard, se_hard = np.mean(output['c-index-test-hard']), scipy.stats.sem(output['c-index-test-hard'][0])
     n = len(output['c-index-test-soft'][0])
     confidence = 0.95
 
-    print("NLin-S:", np.max(nlinear_s),"+-", se_soft * scipy.stats.t.ppf((1 + confidence) / 2., n-1))
-    print("NLin-H:", np.max(nlinear_h), "+-", se_hard * scipy.stats.t.ppf((1 + confidence) / 2., n-1))
+    print("NLin-S:", m_soft, "+-", se_soft * scipy.stats.t.ppf((1 + confidence) / 2., n-1))
+    print("NLin-H:", m_hard, "+-", se_hard * scipy.stats.t.ppf((1 + confidence) / 2., n-1))
+
+    return m_soft, m_hard, se_soft, se_hard
+
+
+def run_all(dataset_name):
+    linear_models = [2, 5, 10, 12]
+    learning_rates = [0.0001, 0.001]
+    num_hidden_layers = [0, 1, 2]
+
+    for params in itertools.product(learning_rates, linear_models, num_hidden_layers):
+        cur_learning_rate, cur_linear_model, cur_num_hidden_layer = params
+
+        cur_model = ExpertsMixture(dataset_name, cur_learning_rate, cur_linear_model, cur_num_hidden_layer)
+        cur_model.exec()
+
+
 
 
 if __name__ == "__main__":
     test_class = ExpertsMixture("metabric", 0.001, 10, 1)
     test_class.exec()
 
-    file_name = "metabric_0.001_10_1_4000"
-    print_results(file_name)
+    # file_name = "metabric_0.001_10_1_4000"
+    # print_results(file_name)
+
+
 
