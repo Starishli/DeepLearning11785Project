@@ -254,10 +254,11 @@ class ExpertsMixture(object):
                        "c-index-soft": self.train_ci_soft, "c-index-hard": self.train_ci_hard,
                        "c-index-test-soft": self.test_ci_soft, "c-index-test-hard": self.test_ci_hard}
 
-        output_file_name = "{}_{}_{}_{}_{}".format(self.dataset_name, self.learning_rate, self.linear_model,
-                                                   self.num_hidden_layers, self.n_epochs)
+        output_file_name = "{}_{}_{}_{}_{}.dat".format(self.dataset_name, self.learning_rate, self.linear_model,
+                                                       self.num_hidden_layers, self.n_epochs)
 
         cache_write(os.path.join(RESULT_DIR, output_file_name), result_dict)
+        print("Result to {}".format(output_file_name))
 
     def exec(self):
         self.model_training()
