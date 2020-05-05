@@ -131,19 +131,19 @@ def get_dataset(dataset_choice):
     return x_train, train, x_valid, valid, x_test, test, y_train, y_valid, y_test, dataset_name
 
 
-def scale_data_to_torch(x_train, train, x_valid, valid, x_test, test):
+def scale_data_to_torch(x_train, y_train, x_valid, y_valid, x_test, y_test):
     scl = StandardScaler()
     x_train = scl.fit_transform(x_train)
-    e_train = train['fstat']
-    t_train = train['lenfol']
+    e_train = y_train['fstat']
+    t_train = y_train['lenfol']
 
     x_valid = scl.fit_transform(x_valid)
-    e_valid = valid['fstat']
-    t_valid = valid['lenfol']
+    e_valid = y_valid['fstat']
+    t_valid = y_valid['lenfol']
 
     x_test = scl.transform(x_test)
-    e_test = test['fstat']
-    t_test = test['lenfol']
+    e_test = y_test['fstat']
+    t_test = y_test['lenfol']
 
     x_train = torch.from_numpy(x_train).float()
     e_train = torch.from_numpy(e_train.values).float()

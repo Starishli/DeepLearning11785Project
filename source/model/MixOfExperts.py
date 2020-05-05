@@ -84,7 +84,7 @@ def train_model(gated_network, betas_network, risk_set, x_train, e_train, t_trai
     gated_network.eval()
     betas_network.eval()
     gated_outputs_test = gated_network(x_test)
-    lsoftmax_test = nn.LogSoftmax(dim=1)(gated_outputs_test)
+    gated_network = nn.LogSoftmax(dim=1)(gated_outputs_test)
     betas_output_test = betas_network(x_test)
     ci_test_soft, ci_test_hard = get_concordance_index(betas_output_test, gated_outputs_test, t_test, e_test,
                                                        bootstrap=250)
@@ -135,9 +135,10 @@ def mix_of_experts(name):
 
     filename = filename_dict[name]
     raw_data = pd.read_csv(os.path.join(DATA_DIR, filename))
-    formatted_x, formatted_y = sksurv_data_formatting(raw_data)
+    x = raw_data.iloc[:, :-2].copy()
+    y = raw_data.iloc[:, -2:].copy()
 
-    x_train, x_test, y_train, y_test = train_test_split(formatted_x, formatted_y,
+    x_train, x_test, y_train, y_test = train_test_split(x, y,
                                                         test_size=0.25, random_state=RANDOM_STATE)
 
     x_train, e_train, t_train, x_valid, e_valid, t_valid, x_test, e_test, t_test = scale_data_to_torch(x_train, y_train,
