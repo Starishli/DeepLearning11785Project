@@ -291,19 +291,65 @@ def run_all(dataset_name):
     for params in itertools.product(learning_rates, linear_models, num_hidden_layers):
         cur_learning_rate, cur_linear_model, cur_num_hidden_layer = params
 
+        if cur_learning_rate == 2 and cur_linear_model == 0.0001 and num_hidden_layers == 0:
+            continue
+
         cur_model = ExpertsMixture(dataset_name, cur_learning_rate, cur_linear_model, cur_num_hidden_layer,
                                    model_specific="new")
         cur_model.exec()
+
+
+def find_best_result(dataset_name, model_specific=""):
+    linear_models = [2, 5, 10, 12]
+    learning_rates = [0.0001, 0.001]
+    num_hidden_layers = [0, 1, 2]
+
+    m_soft_list = []
+    m_hard_list = []
+    se_soft_list = []
+    se_hard_list = []
+
+    params_list = []
+    n = None
+
+    for params in itertools.product(learning_rates, linear_models, num_hidden_layers):
+        cur_learning_rate, cur_linear_model, cur_num_hidden_layer = params
+
+        cur_file_name = "{}_{}_{}_{}_{}{}.dat".format(dataset_name, cur_learning_rate, cur_linear_model,
+                                                      cur_num_hidden_layer, 4000, model_specific)
+
+        output = cache_load(os.path.join(RESULT_DIR, cur_file_name))
+        n = len(output['c-index-test-soft'][0])
+
+        m_soft, se_soft = np.mean(output['c-index-test-soft']), scipy.stats.sem(output['c-index-test-soft'][0])
+        m_hard, se_hard = np.mean(output['c-index-test-hard']), scipy.stats.sem(output['c-index-test-hard'][0])
+
+        m_soft_list.append(m_soft)
+        m_hard_list.append(m_hard)
+        se_soft_list.append(se_soft)
+        se_hard_list.append(se_hard)
+
+        params_list.append((cur_learning_rate, cur_linear_model, cur_num_hidden_layer))
+
+    best_soft_index = int(np.argmax(m_soft_list))
+    best_hard_index = int(np.argmax(m_hard_list))
+
+    return m_soft_list[best_soft_index], se_soft_list[best_soft_index] * scipy.stats.t.ppf((1 + 0.95) / 2., n-1), \
+           params_list[best_soft_index], \
+           m_hard_list[best_hard_index], se_hard_list[best_hard_index] * scipy.stats.t.ppf((1 + 0.95) / 2., n-1), \
+           params_list[best_hard_index]
 
 
 if __name__ == "__main__":
     # test_class = ExpertsMixture("metabric", 0.001, 10, 1, model_specific="new")
     # test_class.exec()
 
-    file_name = "whas_0.0001_2_1_4000.dat"
-    print_results(file_name)
+    # file_name = "whas_0.0001_2_1_4000.dat"
+    # print_results(file_name)
 
     # run_all("metabric")
+
+    print(find_best_result("whas"))
 
 
 
