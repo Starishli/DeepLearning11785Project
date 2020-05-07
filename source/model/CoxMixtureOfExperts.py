@@ -349,7 +349,7 @@ if __name__ == "__main__":
 
     # run_all("metabric")
 
-    print(find_best_result("whas"))
+    print(find_best_result("support", "new"))
 
 
 
